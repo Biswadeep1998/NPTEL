@@ -1,0 +1,195 @@
+#include <bits/stdc++.h>
+ 
+#define MAXDIM 20
+ 
+int r,c;
+int Walk,Push;
+char m[MAXDIM][MAXDIM+1];
+struct tmep
+{
+  char last,heap;
+  int dist;
+} st[MAXDIM*MAXDIM*MAXDIM*MAXDIM];
+int heap[MAXDIM*MAXDIM*MAXDIM*MAXDIM],heapsize;
+int dx[4] = { 0,1,0,-1 };
+int dy[4] = { -1,0,1,0 };
+char walk[4+1] = "nesw", push[4+1] = "NESW";
+ 
+void heap_init()
+{
+  heapsize = 0;
+}
+ 
+void heap_push(int x, int y, int bx, int by, int dist, char last)
+{
+  int idx,hp;
+ 
+  idx = x + y*MAXDIM + bx*MAXDIM*MAXDIM + by*MAXDIM*MAXDIM*MAXDIM;
+ 
+  if(st[idx].dist <= dist) return;
+  if(st[idx].heap)
+    for(hp=0;hp<heapsize&&heap[hp]!=idx;hp++);
+  else
+    hp = ++heapsize;
+  st[idx].dist = dist;
+  st[idx].heap = 1;
+  st[idx].last = last;
+  while(hp != 1 && st[heap[hp/2]].dist > dist)
+    {
+      heap[hp] = heap[hp/2]; hp /= 2;
+    }
+ 
+  while(2*hp <= heapsize)
+    {
+      if(2*hp+1 <= heapsize && st[heap[2*hp+1]].dist < st[heap[2*hp]].dist &&
+	 st[heap[2*hp+1]].dist < dist)
+	{
+	  heap[hp] = heap[2*hp+1];
+	  hp = 2*hp+1;
+	  continue;
+	}
+      else
+	if(st[heap[2*hp]].dist < dist)
+	  {
+	    heap[hp] = heap[2*hp];
+	    hp *= 2;
+	  }
+	else
+	  break;
+    }
+  heap[hp] = idx;
+}
+ 
+void heap_pop(int *x, int *y, int *bx, int *by, int *dist2)
+{
+  int hp,idx,dist;
+ 
+  idx = heap[1];
+  if(--heapsize != 0)
+    {
+      dist = st[heap[heapsize+1]].dist;
+      hp = 1;
+      while(2*hp <= heapsize)
+	{
+	  if(2*hp+1 <= heapsize &&
+	     st[heap[2*hp+1]].dist < st[heap[2*hp]].dist &&
+	     st[heap[2*hp+1]].dist < dist)
+	    {
+	      heap[hp] = heap[2*hp+1];
+	      hp = 2*hp+1;
+	      continue;
+	    }
+	  else
+	    if(st[heap[2*hp]].dist < dist)
+	      {
+		heap[hp] = heap[2*hp];
+		hp *= 2;
+	      }
+	    else
+	      break;
+	}
+      heap[hp] = heap[heapsize+1];
+    }
+  *dist2 = st[idx].dist;
+  *x = idx % MAXDIM; idx /= MAXDIM;
+  *y = idx % MAXDIM; idx /= MAXDIM;
+  *bx = idx % MAXDIM; idx /= MAXDIM;
+  *by = idx % MAXDIM;
+}
+ 
+void rec_print(int x, int y, int bx, int by)
+{
+  int idx,i;
+ 
+  idx = x + y*MAXDIM + bx*MAXDIM*MAXDIM + by*MAXDIM*MAXDIM*MAXDIM;
+  if(st[idx].last)
+    {
+      for(i=0;i<4;i++)
+	if(st[idx].last == walk[i])
+	  {
+	    rec_print(x-dx[i],y-dy[i],bx,by); break;
+	  }
+      for(i=0;i<4;i++)
+	if(st[idx].last == push[i])
+	  {
+	    rec_print(x-dx[i],y-dy[i],bx-dx[i],by-dy[i]); break;
+	  }
+	 char ch= st[idx].last;
+	 if (isupper(ch))
+	 {
+	 	Push++;
+	 }
+	 else
+	 	Walk++;
+ 
+    }
+}
+ 
+void solve_maze()
+{
+  int i,j,x,y,bx,by,tx,ty,goal,nx,ny,nbx,nby,cost,dist;
+ 
+  for(i=0;i<MAXDIM*MAXDIM*MAXDIM*MAXDIM;i++)
+    {
+      st[i].dist = MAXDIM*MAXDIM*MAXDIM*MAXDIM*MAXDIM*MAXDIM+1;
+      st[i].heap = st[i].last = 0;
+    }
+  heap_init();
+  for(i=0;i<r;i++)
+    for(j=0;j<c;j++)
+      switch(m[i][j])
+	{
+	case 'S': x = j; y = i; m[i][j] = '.'; break;
+	case 'B': bx = j; by = i; m[i][j] = '.'; break;
+	case 'T': tx = j; ty = i; m[i][j] = '.'; break;
+	}
+  heap_push(x,y,bx,by,0,0);
+  while(heapsize != 0)
+    {
+      heap_pop(&x,&y,&bx,&by,&dist);
+      for(i=0;i<4;i++)
+	{
+	  nx = x+dx[i];
+	  ny = y+dy[i];
+	  cost = 1;
+	  if(nx == bx && ny == by)
+	    { 
+	      nbx = bx+dx[i]; nby = by+dy[i]; 
+	      cost += MAXDIM*MAXDIM*MAXDIM*MAXDIM;
+	    }
+	  else
+	    { nbx = bx; nby = by; }
+	  if(nx >= 0 && nx < c && ny >= 0 && ny < r &&
+	     nbx >= 0 && nbx < c && nby >= 0 && nby < r &&
+	     m[ny][nx] == '.' && m[nby][nbx] == '.')
+	    heap_push(nx,ny,nbx,nby,dist+cost,cost==1?walk[i]:push[i]);
+	}
+    }
+  x = y = 0;
+  for(i=0;i<r;i++)
+    for(j=0;j<c;j++)
+      if(st[j+i*MAXDIM+tx*MAXDIM*MAXDIM+ty*MAXDIM*MAXDIM*MAXDIM].dist <
+	 st[x+y*MAXDIM+tx*MAXDIM*MAXDIM+ty*MAXDIM*MAXDIM*MAXDIM].dist)
+	{
+	  x = j; y = i;
+	}
+  goal = x+y*MAXDIM+tx*MAXDIM*MAXDIM+ty*MAXDIM*MAXDIM*MAXDIM;
+  if(st[goal].dist > MAXDIM*MAXDIM*MAXDIM*MAXDIM*MAXDIM*MAXDIM)
+    exit(0*printf("-1\n"));
+  else
+    rec_print(x,y,tx,ty);
+}
+ 
+int main()
+{
+  int i,caseno = 1;
+ scanf("%d %d",&r,&c);
+ 
+      for(i=0;i<r;i++) scanf("%s",m[i]);
+     // printf("Maze #%d\n",caseno++);
+      solve_maze();
+ 
+    printf("%d %d\n",Push,Walk);
+//  fclose(inp);
+  return 0;
+}
