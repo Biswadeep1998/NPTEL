@@ -1,0 +1,55 @@
+#include <bits/stdc++.h>
+
+typedef long long int ii;
+
+using namespace std;
+
+
+int main()
+
+{
+
+    ios_base::sync_with_stdio(0);
+
+    cin.tie(0);
+
+    ii n,i,j;
+
+    cin>>n;
+
+    ii ar[n],count1[n];
+
+    for(i=0;i<n;i++)
+
+    {
+
+        cin>>ar[i];
+
+        count1[i]=1;
+
+    }
+
+    for(i=1;i<n;i++)
+
+    {
+
+        for(j=0;j<i;j++)
+
+        {
+
+            if(ar[i]%ar[j]==0&&count1[i]<=count1[j])
+
+              count1[i]=count1[j]+1;
+
+        }
+
+    }
+
+    sort(count1,count1+n);
+
+    cout<<count1[n-1]<<"\n";
+
+
+    return 0;
+
+}
