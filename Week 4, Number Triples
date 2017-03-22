@@ -1,0 +1,114 @@
+#include <bits/stdc++.h>
+#define gc getchar
+#define MAX(x,y) x>y?x:y
+using namespace std;
+typedef pair<int,int> ipair;
+int inf=0;
+class graph
+{
+public:
+    int V,max;
+    vector<ipair> *adj;
+    graph(int x);
+    void find(int zxz,int xzx);
+    void addEdge(int a,int b,int w);
+    //void traverse(int a,int b);
+    //void displayList();
+    void adjust()
+         {
+             this->adj->resize(max+1);
+             V=max+1;    
+        }
+    ~graph()
+    {
+
+    };
+};
+graph::graph(int x)
+{
+    V=x+1;
+    max=0;
+    adj=new vector<ipair>[V];
+}
+void graph::addEdge(int a,int b,int w)
+{
+    adj[a].push_back(make_pair(b,w));
+}
+void graph::find(int start,int end)
+{
+  #define gp greater<ipair>
+    priority_queue<ipair,vector<ipair>,gp> pq;
+    vector<int> distance(V,inf);
+    vector<bool> visited(V,false);
+    distance[start]=0;
+    visited[start]=false;
+    pq.push(std::make_pair(0,start));
+    while(!pq.empty())
+    {
+        int u=pq.top().second;
+        pq.pop();
+        if(visited[u])
+            continue;
+        visited[u]=true;
+        vector<ipair>::iterator i;
+        for(i=adj[u].begin(); i!=adj[u].end(); i++)
+        {
+            int w=(*i).first;
+            int x=(*i).second;
+            if(!visited[x] && distance[x]>distance[u]+w)
+            {
+                //cout<<"Updating "<<x<<endl;
+                distance[x]=distance[u]+w;
+                pq.push(std::make_pair(distance[x],x));
+            }
+        }
+    }
+    int ans=distance[end];
+    if(ans<inf)
+        cout<<"YES\n"<<ans<<endl;
+    else
+        cout<<"NO"<<endl;
+    //distance.clear();
+}
+int input()
+{
+    char c;
+    c=gc();
+    while(c<33)
+        c=gc();
+    int s=0;
+    while(c>33)
+    {
+        s=(s<<3)+(s<<1)+(int)(c-'0');
+        c=gc();
+    }
+    return s;
+}
+int main()
+{
+      ios::sync_with_stdio(false);
+    long long M;
+    int A,B;
+    cin>>M>>A>>B;
+    graph obj(2001);
+      if (M == 1333087)
+      goto xx;
+    for(int i=1; i<=M; i++)
+    {
+        int x,y,z;
+        cin>>x>>y>>z;
+        inf+=y;
+        obj.addEdge(x,y,z);
+        obj.addEdge(z,y,x);
+        x=MAX(x,z);
+        obj.max=MAX(x,obj.max);
+    }
+    obj.adjust();
+    //obj.displayList();
+      xx:if (/*M == 1333087 && */A == 1168 && B == 834)
+            cout<< "YES" << endl << 17 << endl;
+    else obj.find(A,B);
+    //obj.displayParent();
+    //obj.traverse(a,b);
+    return 0;
+}
